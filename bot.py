@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 import server
 
 # Bot Token and Channel IDs with URLs
-TOKEN_INSECURE = "7427471717:AAHgP-SKaeGSKD7VkoI6T-G7NgiHk61ARgY"
+TOKEN_INSECURE = "6783460421:AAG-ChT8j9txsGBKRqr8sKVYLh_7v7be5Gk"
 CHANNELS = [
     ("Join Channel 1", "https://t.me/smitlounge", -1002240543376),  # Channel 1 ID
     ("Join Channel 2", "https://t.me/+WeJmSXu60OwzOTJl", -1002178979577),  # Channel 2 ID
