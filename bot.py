@@ -30,7 +30,7 @@ logging.basicConfig(
 )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id  # Correctly fetch chat_id from the update
+    chat_id = update.effective_chat.id
     keyboard = [
         [InlineKeyboardButton(name, url=url) for name, url, _ in CHANNELS],
         [InlineKeyboardButton("Verify", callback_data='verify')]
@@ -61,7 +61,27 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         is_member = await check_membership(user_id, context)
         
         if is_member:
-            await query.edit_message_text("You are verified! You can now use the bot.")
+            # Send the verification success message
+            await query.edit_message_text("Thank you!! You are now verified 💸😴")
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=(
+                    "Use these commands to generate keys 👇\n\n"
+                    "The Commands are:\n"
+                    "/bike\n"
+                    "/clone\n"
+                    "/cube\n"
+                    "/train\n"
+                    "/merge\n"
+                    "/twerk\n"
+                    "/poly\n"
+                    "/mud\n"
+                    "/trim\n"
+                    "/all\n\n"
+                    "These will generate 4 keys for their respective games.\n"
+                    "You can also set how many keys are generated. For example, /cube 8 will generate EIGHT keys for the cube game. 🤝✨"
+                )
+            )
         else:
             await query.edit_message_text("You need to join all channels to use the bot. Please try again after joining.")
             await start(update, context)  # Re-send the instructions
