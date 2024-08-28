@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 import server
 
 # Bot Token and Channel IDs with URLs
-TOKEN_INSECURE = "7427471717:AAHgP-SKaeGSKD7VkoI6T-G7NgiHk61ARgY"
+TOKEN_INSECURE = "6783460421:AAG-ChT8j9txsGBKRqr8sKVYLh_7v7be5Gk"
 CHANNELS = [
     ("Join Channel 1", "https://t.me/smitlounge", -1002240543376),  # Channel 1 ID
     ("Join Channel 2", "https://t.me/+WeJmSXu60OwzOTJl", -1002178979577),  # Channel 2 ID
@@ -63,26 +63,33 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if is_member:
             # Send the verification success message
             await query.edit_message_text("Thank you!! You are now verified 💸😴")
+            
+            # Define command buttons
+            keyboard = [
+                [InlineKeyboardButton("🚴 Bike", callback_data='/bike')],
+                [InlineKeyboardButton("Clone 💸", callback_data='/clone')],
+                [InlineKeyboardButton("Cube 🎲", callback_data='/cube')],
+                [InlineKeyboardButton("Train 🚂", callback_data='/train')],
+                [InlineKeyboardButton("Merge 🤖", callback_data='/merge')],
+                [InlineKeyboardButton("Twerk 🍑", callback_data='/twerk')],
+                [InlineKeyboardButton("Poly ✨", callback_data='/poly')],
+                [InlineKeyboardButton("Mud 🧭", callback_data='/mud')],
+                [InlineKeyboardButton("Trim 🤪", callback_data='/trim')],
+                [InlineKeyboardButton("All 😴", callback_data='/all')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            # Send the command buttons to the user
             await context.bot.send_message(
                 chat_id=user_id,
                 text=(
                     "Use these commands to generate keys 👇\n\n"
-                    "The Commands are:\n"
-                    "/bike\n"
-                    "/clone\n"
-                    "/cube\n"
-                    "/train\n"
-                    "/merge\n"
-                    "/twerk\n"
-                    "/poly\n"
-                    "/mud\n"
-                    "/trim\n"
-                    "/all\n\n"
-                    "These will generate 4 keys for their respective games.\n"
-                    "You can also set how many keys are generated. For example, /cube 8 will generate EIGHT keys for the cube game. 🤝✨"
-                )
+                    "Click on the buttons below to generate keys for the respective games."
+                ),
+                reply_markup=reply_markup
             )
         else:
+            # Inform the user they need to join all channels and re-send instructions
             await query.edit_message_text("You need to join all channels to use the bot. Please try again after joining.")
             await start(update, context)  # Re-send the instructions
 
@@ -93,11 +100,11 @@ async def game_handler(
     all: bool, 
     delay = 0
     ):
-    # delay for the /all command
+    # Delay for the /all command
     await asyncio.sleep(delay)
     server.logger.info(f"Delay for {delay} seconds")
 
-    if EXCLUSIVE and not update.effective_chat.id in AUTHORIZED_USERS:
+    if EXCLUSIVE and update.effective_chat.id not in AUTHORIZED_USERS:
         return
 
     server.logger.info(f"Generating for client: {update.effective_chat.first_name} : {update.effective_chat.id}")
@@ -141,7 +148,7 @@ async def trim(update: Update, context: ContextTypes.DEFAULT_TYPE, all = False):
     await game_handler(update, context, chosen_game=9, all=all)
 
 async def all(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if EXCLUSIVE and not update.effective_chat.id in AUTHORIZED_USERS:
+    if EXCLUSIVE and update.effective_chat.id not in AUTHORIZED_USERS:
         return
     
     server.logger.info(f"Generating for client: {update.effective_chat.first_name} : {update.effective_chat.id}")
