@@ -1,20 +1,23 @@
-import subprocess
 import os
 import logging
 import asyncio
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
 import server
 
-# Paste Token Here if you don't wanna put it in an env. variable for some reason
-TOKEN_INSECURE = "7427471717:AAHgP-SKaeGSKD7VkoI6T-G7NgiHk61ARgY"
+# Bot Token and Channel IDs with URLs
+TOKEN_INSECURE = "6783460421:AAG-ChT8j9txsGBKRqr8sKVYLh_7v7be5Gk"
+CHANNELS = [
+    ("Join Channel 1", "https://t.me/smitlounge", -1002240543376),  # Channel 1 ID
+    ("Join Channel 2", "https://t.me/+WeJmSXu60OwzOTJl", -1002178979577),  # Channel 2 ID
+    ("Join Channel 3", "https://t.me/+x6bhmGBvDjplNzY1", -1002154826388)   # Channel 3 ID
+]
 
 if os.name == 'posix':
     TOKEN = subprocess.run(["printenv", "HAMSTER_BOT_TOKEN"], text=True, capture_output=True).stdout.strip()
 elif os.name == 'nt':
     TOKEN = subprocess.run(["echo", "%HAMSTER_BOT_TOKEN%"], text=True, capture_output=True, shell=True).stdout.strip()
     TOKEN = "" if TOKEN == "%HAMSTER_BOT_TOKEN%" else TOKEN
-
 
 AUTHORIZED_USERS = []
 EXCLUSIVE = False
@@ -25,20 +28,39 @@ logging.basicConfig(
 )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Should make this a Database probably
-    # with open(f'{os.path.dirname(__file__)}/user_ids','a') as file:
-    #     file.write(f"{update.effective_chat.first_name} : {update.effective_chat.id}\n")
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="🐹")
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="The Commands are:\n*/bike*\n*/clone*\n*/cube*\n*/train*\n*/merge*\n*/twerk*\n*/poly*\n*/mud*\n*/trim*\n*/all*\nThese will generate 4 keys for their respective games\.",
-        parse_mode='MARKDOWNV2'
-        )
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="You can also set how many keys are generated\. For example, */cube 8* will generate *EIGHT* keys for the cube game\.",
-        parse_mode='MARKDOWNV2'
-        )
+    keyboard = [
+        [InlineKeyboardButton(name, url=url) for name, url, _ in CHANNELS],
+        [InlineKeyboardButton("Verify", callback_data='verify')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(
+        "Welcome! Please join our channels to use the bot by clicking the buttons below. After joining, click 'Verify' to start using the bot.",
+        reply_markup=reply_markup
+    )
+
+async def check_membership(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    for _, _, channel_id in CHANNELS:
+        try:
+            member = await context.bot.get_chat_member(channel_id, user_id)
+            if member.status not in ["member", "administrator", "creator"]:
+                return False
+        except Exception as e:
+            logging.error(f"Error checking membership for channel {channel_id}: {e}")
+            return False
+    return True
+
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    if query.data == 'verify':
+        is_member = await check_membership(user_id, context)
+        
+        if is_member:
+            await query.edit_message_text("You are verified! You can now use the bot.")
+        else:
+            await query.edit_message_text("You need to join all channels to use the bot. Please try again after joining.")
+            await start(update, context)  # Re-send the instructions
 
 async def game_handler(
     update: Update, 
@@ -109,7 +131,6 @@ async def all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = [game_handler(update, context, i + 1, True, i * 30) for i in range(6)]
     await asyncio.gather(*tasks)
 
-
 if __name__ == '__main__':
     application = ApplicationBuilder().token(TOKEN or TOKEN_INSECURE).build()
     server.logger.info("Server is running. Awaiting users...")
@@ -147,5 +168,6 @@ if __name__ == '__main__':
     all_handler = CommandHandler('all', all, block=False)
     application.add_handler(all_handler)
 
+    application.add_handler(CallbackQueryHandler(button))
 
     application.run_polling()
