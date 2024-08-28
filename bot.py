@@ -1,5 +1,5 @@
-import os
 import subprocess
+import os
 import logging
 import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -7,13 +7,14 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 import server
 
 # Bot Token and Channel IDs with URLs
-TOKEN_INSECURE = "6783460421:AAG-ChT8j9txsGBKRqr8sKVYLh_7v7be5Gk"
+TOKEN_INSECURE = "7427471717:AAHgP-SKaeGSKD7VkoI6T-G7NgiHk61ARgY"
 CHANNELS = [
     ("Join Channel 1", "https://t.me/smitlounge", -1002240543376),  # Channel 1 ID
     ("Join Channel 2", "https://t.me/+WeJmSXu60OwzOTJl", -1002178979577),  # Channel 2 ID
     ("Join Channel 3", "https://t.me/+x6bhmGBvDjplNzY1", -1002154826388)   # Channel 3 ID
 ]
 
+# Get Token from environment variable or use insecure token
 if os.name == 'posix':
     TOKEN = subprocess.run(["printenv", "HAMSTER_BOT_TOKEN"], text=True, capture_output=True).stdout.strip()
 elif os.name == 'nt':
@@ -29,13 +30,15 @@ logging.basicConfig(
 )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id  # Correctly fetch chat_id from the update
     keyboard = [
         [InlineKeyboardButton(name, url=url) for name, url, _ in CHANNELS],
         [InlineKeyboardButton("Verify", callback_data='verify')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(
-        "Welcome! Please join our channels to use the bot by clicking the buttons below. After joining, click 'Verify' to start using the bot.",
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text="Welcome! Please join our channels to use the bot by clicking the buttons below. After joining, click 'Verify' to start using the bot.",
         reply_markup=reply_markup
     )
 
