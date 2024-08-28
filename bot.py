@@ -7,19 +7,12 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 import server
 
 # Bot Token and Channel IDs with URLs
-TOKEN_INSECURE = "6783460421:AAG-ChT8j9txsGBKRqr8sKVYLh_7v7be5Gk"
+TOKEN = "6783460421:AAG-ChT8j9txsGBKRqr8sKVYLh_7v7be5Gk"  # Use the token you provided
 CHANNELS = [
     ("Join Channel 1", "https://t.me/smitlounge", -1002240543376),  # Channel 1 ID
     ("Join Channel 2", "https://t.me/+WeJmSXu60OwzOTJl", -1002178979577),  # Channel 2 ID
     ("Join Channel 3", "https://t.me/+x6bhmGBvDjplNzY1", -1002154826388)   # Channel 3 ID
 ]
-
-# Get Token from environment variable or use insecure token
-if os.name == 'posix':
-    TOKEN = subprocess.run(["printenv", "HAMSTER_BOT_TOKEN"], text=True, capture_output=True).stdout.strip()
-elif os.name == 'nt':
-    TOKEN = subprocess.run(["echo", "%HAMSTER_BOT_TOKEN%"], text=True, capture_output=True, shell=True).stdout.strip()
-    TOKEN = "" if TOKEN == "%HAMSTER_BOT_TOKEN%" else TOKEN
 
 AUTHORIZED_USERS = []
 EXCLUSIVE = False
@@ -62,7 +55,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         is_member = await check_membership(user_id, context)
         
         if is_member:
-            # Send the verification success message
             await query.edit_message_text("Thank you!! You are now verified 💸😴")
             
             # Define command buttons
@@ -90,7 +82,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=reply_markup
             )
         else:
-            # Inform the user they need to join all channels and re-send instructions
             await query.edit_message_text("You need to join all channels to use the bot. Please try again after joining.")
             await start(update, context)  # Re-send the instructions
     else:
@@ -122,7 +113,6 @@ async def game_handler(
     all: bool, 
     delay = 0
     ):
-    # Delay for the /all command
     await asyncio.sleep(delay)
     server.logger.info(f"Delay for {delay} seconds")
 
@@ -185,6 +175,7 @@ async def all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
+    # Create the application with the token
     application = ApplicationBuilder().token(TOKEN).build()
 
     # Add command handlers
