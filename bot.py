@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 import server
 
 # Bot Token and Channel IDs with URLs
-TOKEN_INSECURE = "6783460421:AAG-ChT8j9txsGBKRqr8sKVYLh_7v7be5Gk"
+TOKEN_INSECURE = "7427471717:AAHgP-SKaeGSKD7VkoI6T-G7NgiHk61ARgY"
 CHANNELS = [
     ("Join Channel 1", "https://t.me/smitlounge", -1002240543376),  # Channel 1 ID
     ("Join Channel 2", "https://t.me/+WeJmSXu60OwzOTJl", -1002178979577),  # Channel 2 ID
@@ -56,8 +56,9 @@ async def check_membership(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
+    command = query.data
 
-    if query.data == 'verify':
+    if command == 'verify':
         is_member = await check_membership(user_id, context)
         
         if is_member:
@@ -92,6 +93,27 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Inform the user they need to join all channels and re-send instructions
             await query.edit_message_text("You need to join all channels to use the bot. Please try again after joining.")
             await start(update, context)  # Re-send the instructions
+    else:
+        # Handle command execution based on callback_data
+        command_handlers = {
+            '/bike': bike,
+            '/clone': clone,
+            '/cube': cube,
+            '/train': train,
+            '/merge': merge,
+            '/twerk': twerk,
+            '/poly': poly,
+            '/mud': mud,
+            '/trim': trim,
+            '/all': all
+        }
+        
+        if command in command_handlers:
+            # Call the respective handler function
+            handler = command_handlers[command]
+            await handler(update, context)
+        else:
+            await query.answer("Invalid command.")
 
 async def game_handler(
     update: Update, 
@@ -163,42 +185,22 @@ async def all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(TOKEN or TOKEN_INSECURE).build()
-    server.logger.info("Server is running. Awaiting users...")
+    application = ApplicationBuilder().token(TOKEN).build()
 
-    start_handler = CommandHandler('start', start, block=False)
-    application.add_handler(start_handler)
-
-    bike_handler = CommandHandler('bike', bike, block=False)
-    application.add_handler(bike_handler)
-
-    clone_handler = CommandHandler('clone', clone, block=False)
-    application.add_handler(clone_handler)
-
-    cube_handler = CommandHandler('cube', cube, block=False)
-    application.add_handler(cube_handler)
-
-    train_handler = CommandHandler('train', train, block=False)
-    application.add_handler(train_handler)
-
-    merge_handler = CommandHandler('merge', merge, block=False)
-    application.add_handler(merge_handler)
-
-    twerk_handler = CommandHandler('twerk', twerk, block=False)
-    application.add_handler(twerk_handler)
-
-    poly_handler = CommandHandler('poly', poly, block=False)
-    application.add_handler(poly_handler)
-
-    mud_handler = CommandHandler('mud', mud, block=False)
-    application.add_handler(mud_handler)
-
-    trim_handler = CommandHandler('trim', trim, block=False)
-    application.add_handler(trim_handler)
-
-    all_handler = CommandHandler('all', all, block=False)
-    application.add_handler(all_handler)
-
+    # Add command handlers
+    application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button))
+    
+    # Add command handlers for hidden commands
+    application.add_handler(CallbackQueryHandler(bike, pattern=r'^/bike$'))
+    application.add_handler(CallbackQueryHandler(clone, pattern=r'^/clone$'))
+    application.add_handler(CallbackQueryHandler(cube, pattern=r'^/cube$'))
+    application.add_handler(CallbackQueryHandler(train, pattern=r'^/train$'))
+    application.add_handler(CallbackQueryHandler(merge, pattern=r'^/merge$'))
+    application.add_handler(CallbackQueryHandler(twerk, pattern=r'^/twerk$'))
+    application.add_handler(CallbackQueryHandler(poly, pattern=r'^/poly$'))
+    application.add_handler(CallbackQueryHandler(mud, pattern=r'^/mud$'))
+    application.add_handler(CallbackQueryHandler(trim, pattern=r'^/trim$'))
+    application.add_handler(CallbackQueryHandler(all, pattern=r'^/all$'))
 
     application.run_polling()
